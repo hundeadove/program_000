@@ -1,0 +1,352 @@
+using System;
+using System.Collections.Generic;
+
+namespace project_000
+{
+    class Programm
+    {
+        class FullName
+        {
+            public string Surname { get; set; }
+            public string Name { get; set; }
+            public string? Patronymic { get; set; }
+
+            public FullName(string surname, string name, string? patronymic)
+            {
+                Surname = surname;
+                Name = name;
+                Patronymic = patronymic;
+            }
+        }
+        class Work
+        {
+            public string? Organization { get; set; }
+            public string? Position { get; set; }
+
+            public Work(string? organization, string? position)
+            {
+                Organization = organization;
+                Position = position;
+            }
+        }
+        class ContactData
+        {
+            public string Country { get; set; }
+            public string PhoneNumber { get; set; }
+            public DateTime? DateOfBirth { get; set; }
+
+            public ContactData(string country, string phoneNumber, DateTime? dateOfBirth)
+            {
+                Country = country;
+                PhoneNumber = phoneNumber;
+                DateOfBirth = dateOfBirth;
+            }
+        }
+        class Record
+        {
+            public FullName Name { get; set; }
+            public Work Work { get; set; }
+            public ContactData ContactData { get; set; }
+            public string? OtherNotes { get; set; }
+
+            public Record(FullName name, Work work, ContactData contactData, string? otherNotes)
+            {
+                Name = name;
+                Work = work;
+                ContactData = contactData;
+                OtherNotes = otherNotes;
+            }
+        }
+
+        class RecordsStorage
+        {
+            private List<Record> Records { get; } = new();
+
+            public void InsertRecord(Record record)
+            {
+                Records.Add(record);
+            }
+            public void RemoveRecord(int index)
+            {
+                Records.RemoveAt(index);
+            }
+            public Record GetRecordAt(int index)
+            {
+                return Records[index];
+            }
+            public int Count()
+            {
+                return Records.Count;
+            }
+        }
+
+        interface IAction
+        {
+            public void Action();
+            public string Name();
+        }
+        abstract class AbstractActionWithRecords : IAction
+        {
+            protected RecordsStorage Storage { get; }
+            public AbstractActionWithRecords(RecordsStorage storage)
+            {
+                Storage = storage;
+            }
+
+            public abstract void Action();
+            public abstract string Name();
+        }
+
+        class CreateRecordAction : AbstractActionWithRecords
+        {
+            public CreateRecordAction(RecordsStorage storage) : base(storage) { }
+
+            public override string Name()
+            {
+                return "Create record";
+            }
+            public override void Action()
+            {
+                FullName name = new FullName(null, null, null);
+                Work work = new Work(null, null);
+                ContactData contacts = new ContactData(null, null, null);
+                string notes = null;
+
+
+                while (true)
+                {
+                    Console.Write("Surname [required]: ");
+                    name.Surname = Console.ReadLine();
+
+                    if (name.Surname != null && name.Surname.Length > 0)
+                        break;
+                    else
+                        Console.WriteLine("Invalid input. Try again");
+                }
+                while (true)
+                {
+                    Console.Write("Name [required]: ");
+                    name.Name = Console.ReadLine();
+
+                    if (name.Name != null && name.Name.Length > 0)
+                        break;
+                    else
+                        Console.WriteLine("Invalid input. Try again");
+                }
+                Console.Write("Patronymic: ");
+                name.Patronymic = Console.ReadLine();
+
+                Console.Write("Organization: ");
+                work.Organization = Console.ReadLine();
+                Console.Write("Position: ");
+                work.Position = Console.ReadLine();
+
+                while (true)
+                {
+                    Console.Write("Phone [required]: ");
+                    contacts.PhoneNumber = Console.ReadLine();
+
+                    if (contacts.PhoneNumber != null && contacts.PhoneNumber.Length > 0)
+                        break;
+                    else
+                        Console.WriteLine("Invalid input. Try again");
+                }
+                Console.Write("Country: ");
+                contacts.Country = Console.ReadLine();
+
+
+                Console.Write("Date of birth [dd/mm/yyyy]: ");
+                string line = Console.ReadLine();
+                if (line != null && line.Length > 0)
+                {
+                    contacts.DateOfBirth = DateTime.ParseExact(line, "dd/mm/yyyy", CultureInfo.InvariantCulture);
+                }
+
+
+
+                Console.Write("Notes: ");
+                notes = Console.ReadLine();
+
+                Storage.InsertRecord(new Record(name, work, contacts, notes));
+            }
+        }
+        class RemoveRecordAction : AbstractActionWithRecords
+        {
+            public RemoveRecordAction(RecordsStorage storage) : base(storage) { }
+
+            public override string Name()
+            {
+                return "Remove record";
+            }
+            public override void Action()
+            {
+                Console.Write("Enter a index for remove record: ");
+                int index = int.Parse(Console.ReadLine());
+                if (index < 0 || index >= Storage.Count())
+                {
+                    Console.WriteLine("Invalid index");
+                    return;
+                }
+
+                Storage.RemoveRecord(index);
+            }
+        }
+        class UpdateRecordAction : AbstractActionWithRecords
+        {
+            public UpdateRecordAction(RecordsStorage storage) : base(storage) { }
+
+            public override string Name()
+            {
+                return "Update record";
+            }
+            public override void Action()
+            {
+                Console.Write("Enter a update record index: ");
+                int index = int.Parse(Console.ReadLine());
+                if (index < 0 || index > Storage.Count())
+                {
+                    Console.WriteLine("Invalid index");
+                    return;
+                }
+
+
+                Record record = Storage.GetRecordAt(index);
+
+                Console.Write("Surname: ");
+                record.Name.Surname = Console.ReadLine() ?? record.Name.Surname;
+
+                Console.Write("Name: ");
+                record.Name.Name = Console.ReadLine() ?? record.Name.Name;
+
+                Console.Write("Patronymic: ");
+                record.Name.Patronymic = Console.ReadLine() ?? record.Name.Patronymic;
+
+                Console.Write("Organization: ");
+                record.Work.Organization = Console.ReadLine() ?? record.Work.Organization;
+
+                Console.Write("Position: ");
+                record.Work.Position = Console.ReadLine() ?? record.Work.Position;
+
+                Console.Write("Phone: ");
+                record.ContactData.PhoneNumber = Console.ReadLine() ?? record.ContactData.PhoneNumber;
+
+                Console.Write("Country: ");
+                record.ContactData.Country = Console.ReadLine() ?? record.ContactData.Country;
+
+                Console.Write("Date of birth [dd/mm/yyyy]: ");
+                string line = Console.ReadLine();
+                if (line != null)
+                {
+                    DateTime newDateOfBirth = DateTime.ParseExact(line, "dd/mm/yyyy", CultureInfo.InvariantCulture);
+                    if (newDateOfBirth != null)
+                    {
+                        record.ContactData.DateOfBirth = newDateOfBirth;
+                    }
+                }
+
+                Console.Write("Notex: ");
+                record.OtherNotes = Console.ReadLine() ?? record.OtherNotes;
+            }
+        }
+        class ShowAllRecordsAction : AbstractActionWithRecords
+        {
+            public ShowAllRecordsAction(RecordsStorage storage) : base(storage) { }
+
+            public override string Name()
+            {
+                return "Show all records";
+            }
+            public override void Action()
+            {
+                Console.WriteLine("=================================");
+                for (int index = 0; index < Storage.Count(); ++index)
+                {
+                    Record record = Storage.GetRecordAt(index);
+
+                    Console.WriteLine("#################################");
+                    Console.WriteLine($"Record {index}");
+                    Console.WriteLine($"Surname: {record.Name.Surname}");
+                    Console.WriteLine($"Name: {record.Name.Name}");
+                    Console.WriteLine($"Patronymic: {((record.Name.Patronymic != null && record.Name.Patronymic.Length > 0) ? record.Name.Patronymic : "--")}");
+                    Console.WriteLine($"Phone: {record.ContactData.PhoneNumber}");
+                    Console.WriteLine($"Country: {record.ContactData.Country}");
+                    Console.WriteLine($"Date of birth: {((record.ContactData.DateOfBirth != null) ? record.ContactData.DateOfBirth : "--")}");
+                    Console.WriteLine($"Organization: {((record.Work.Organization != null && record.Work.Organization.Length > 0) ? record.Work.Organization : "--")}");
+                    Console.WriteLine($"Organization: {((record.Work.Position != null && record.Work.Position.Length > 0) ? record.Work.Position : "--")}");
+                    Console.WriteLine("#################################");
+                }
+                Console.WriteLine("=================================");
+            }
+        }
+        class ShowShortDescriptionAction : AbstractActionWithRecords
+        {
+            public ShowShortDescriptionAction(RecordsStorage storage) : base(storage) { }
+
+            public override string Name()
+            {
+                return "Show shord description";
+            }
+            public override void Action()
+            {
+                Console.WriteLine("=================================");
+                for (int index = 0; index < Storage.Count(); ++index)
+                {
+                    Record record = Storage.GetRecordAt(index);
+
+                    Console.WriteLine("#################################");
+                    Console.WriteLine($"Record {index}");
+                    Console.WriteLine($"Surname: {record.Name.Surname}");
+                    Console.WriteLine($"Name: {record.Name.Name}");
+                    Console.WriteLine($"Phone: {record.ContactData.PhoneNumber}");
+                    Console.WriteLine("#################################");
+                }
+                Console.WriteLine("=================================");
+            }
+        }
+        class QuitAction : IAction
+        {
+            public void Action()
+            {
+                Environment.Exit(0);
+            }
+            public string Name()
+            {
+                return "Quit";
+            }
+        }
+
+        static void PrintActions(List<IAction> actions)
+        {
+            Console.WriteLine("==========Actions==========");
+            for(int i = 0; i < actions.Count; i++)
+                Console.WriteLine($"{i}: {actions[i].Name()}");
+            Console.WriteLine("===========================");
+        }
+        static void Main(string[] args)
+        {
+            var storage = new RecordsStorage();
+            var actions = new List<IAction>();
+            actions.Add(new CreateRecordAction(storage));
+            actions.Add(new RemoveRecordAction(storage));
+            actions.Add(new UpdateRecordAction(storage));
+            actions.Add(new ShowAllRecordsAction(storage));
+            actions.Add(new ShowShortDescriptionAction(storage));
+            actions.Add(new QuitAction());
+
+            while (true)
+            {
+                PrintActions(actions);
+                Console.Write("Enter a action index: ");
+                int index = int.Parse(Console.ReadLine());
+                if(index < 0 || index >= actions.Count)
+                {
+                    Console.WriteLine("Invalid index");
+                    continue;
+                }
+
+                actions[index].Action();
+            }
+        }
+    }
+}
+
